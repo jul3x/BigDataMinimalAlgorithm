@@ -14,6 +14,22 @@ object PDDMinAlgorithm extends Serializable {
     math.ceil(log2(l)).toInt
   }
 
+  def generateRows(tuple: (String, String, Any, Any, Any), prefix_of: Char):
+      Seq[(String, (String, String, Any, Any, Any))] = {
+    var prefix = ""
+
+    var return_val = Seq[(String, (String, String, Any, Any, Any))]()
+    for (c <- tuple._2) {
+      if (c == prefix_of) {
+        return_val = return_val :+ (prefix, tuple)
+      }
+
+      prefix = prefix :+ c
+    }
+
+    return_val
+  }
+
   def main(args: Array[String]) {
     val spark = SparkSession.builder.appName("Simple Application").getOrCreate()
 
@@ -34,8 +50,15 @@ object PDDMinAlgorithm extends Serializable {
     val sorted_by_y = sorted_by_x.sortBy(_._4.toString.toInt).zipWithIndex()
       .map(i => (i._1._1 + toBinary(i._2, binary_length), i._1._2, i._1._3, i._1._4)).cache
 
+    val query_points = sorted_by_y.map(row => ("Q", row._1, row._2, row._3, row._4))
+    val data_points = sorted_by_y.map(row => ("D", row._1, row._2, row._3, row._4))
 
-    sorted_by_y.collect().foreach(i => println(i))
+    val keys_query_points = query_points.flatMap(row => generateRows(row, '0'))
+    val keys_data_points = data_points.flatMap(row => generateRows(row, '1'))
+
+    val all_points = keys_query_points.union(keys_data_points).groupByKey()
+
+    all_points.collect().foreach(i => println(i))
 
 
     spark.stop()

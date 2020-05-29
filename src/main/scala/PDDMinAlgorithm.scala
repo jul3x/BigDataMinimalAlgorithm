@@ -68,7 +68,7 @@ object PDDMinAlgorithm extends Serializable {
       .option("sep", ",")
       .option("inferSchema", "true")
       .option("header", "true")
-      .load("small_dataset.csv")
+      .load("hdfs://" + args(0) + ":9123/user/points/small_dataset.csv")
       .na.drop().cache
 
     val number_of_elements = in_file.count()

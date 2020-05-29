@@ -30,10 +30,12 @@ object PDDMinAlgorithm extends Serializable {
     return_val
   }
 
+  def sortElements(i: (String, Iterable[(String, String, Int, Int, Int)])) : (String, Iterable[(String, String, Int, Int, Int)]) = {
+    (i._1, i._2.toList.sortBy(obj => (obj._5, obj._4))(Ordering[(Int, Int)].reverse))
+  }
+
   def countHigherElements(i: (String, Iterable[(String, String, Int, Int, Int)])): Seq[(Int, (Int, String, Int, Int))] = {
-    val sorted_list = i._2.toList
-        .sortBy(obj => (obj._4, obj._5))(Ordering[(Int, Int)].reverse)
-        .map(row => (0, row._1, row._2, row._3, row._4, row._5))
+    val sorted_list = i._2.toList.map(row => (0, row._1, row._2, row._3, row._4, row._5))
     var return_list = Seq[(Int, (Int, String, Int, Int))]()
 
     var number_of_data_points = 0
@@ -88,11 +90,12 @@ object PDDMinAlgorithm extends Serializable {
     val keys_data_points = data_points.flatMap(row => generateRows(row, '1'))
 
     val all_points = keys_query_points.union(keys_data_points)
-        .groupByKey()
-        .flatMap(i => countHigherElements(i))
-        .groupByKey().map(sumElements)
+      .groupByKey()
+      .map(sortElements)
+      .flatMap(i => countHigherElements(i))
+      .groupByKey().map(sumElements)
 
-    all_points.collect().foreach(i => println(i))
+    all_points.collect().foreach(i => println(i._1 + "(" + i._2 + ", " + i._3 + "): " + i._4 + " greater elements."))
 
 
     spark.stop()

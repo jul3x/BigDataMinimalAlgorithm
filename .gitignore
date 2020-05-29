@@ -1,7 +1,11 @@
 *.class
 *.log
-.idea/*
-target/*
-project/*
+2D/.idea/*
+2D/target/*
+2D/project/*
+3D/.idea/*
+3D/target/*
+3D/project/*
+
 
 spark-2.4.5-bin-hadoop2.7/*

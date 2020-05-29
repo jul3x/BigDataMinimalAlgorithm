@@ -25,5 +25,5 @@ hdfs_ip=$(head -n 1 ~/master)
     --conf spark.executorEnv.JAVA_HOME=$JAVA_HOME_ \
     --conf spark.executorEnv.HADOOP_INSTALL=$HADOOP_INSTALL_ \
     --conf spark.executorEnv.PATH=$JAVA_HOME_/bin:$HADOOP_INSTALL_/bin:$HADOOP_INSTALL_/sbin:$PATH \
-    target/scala-2.11/pddminalgorithm3d_2.11-0.1.jar "hdfs://$hdfs_ip:9123/user/points/sample_dataset_3d.csv"
+    target/scala-2.11/pddminalgorithm3d_2.11-0.1.jar "hdfs://$hdfs_ip:9123/user/points/dataset_3d.csv"
 

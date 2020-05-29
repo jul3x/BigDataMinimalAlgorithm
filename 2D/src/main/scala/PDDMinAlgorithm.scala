@@ -75,7 +75,7 @@ object PDDMinAlgorithm extends Serializable {
 
     val number_of_elements = in_file.count()
     val binary_length = getBinaryLength(number_of_elements)
-    println("Number of elements! : " + number_of_elements)
+    println("Number of elements: " + number_of_elements)
 
     val sorted_by_x = in_file.orderBy("x", "y").rdd.zipWithIndex()
       .map(i => (toBinary(i._2, binary_length), i._1.getAs[Int](0), i._1.getAs[Int](1), i._1.getAs[Int](2))).cache

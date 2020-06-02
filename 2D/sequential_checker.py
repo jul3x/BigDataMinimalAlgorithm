@@ -11,7 +11,7 @@ with open('../small_dataset.csv', newline='') as f:
     for point in points:        
         greater_points = 0
         for d_point in points:
-            if point[1] <= d_point[1] and point[2] <= d_point[2]:
+            if point[1] <= d_point[1] and point[2] <= d_point[2] and (point[1] != d_point[1] or point[2] != d_point[2]):
                 greater_points = greater_points + 1
 
-        print(str(point[0]) + ", " + str(point[1]) + ", " + str(point[2]) + " has " + str(greater_points - 1) + " greater points.")
+        print(str(point[0]) + ", " + str(point[1]) + ", " + str(point[2]) + " has " + str(greater_points) + " greater points.")

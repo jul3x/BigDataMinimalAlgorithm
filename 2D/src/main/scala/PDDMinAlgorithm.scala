@@ -87,13 +87,73 @@ object PDDMinAlgorithm extends Serializable {
     val keys_data_points = data_points.flatMap(row => generateRows(row, '1'))
 
     val all_points = keys_query_points.union(keys_data_points)
-      .groupByKey()
-      .map(sortElements)
-      .flatMap(i => countHigherElements(i))
-      .groupByKey().map(sumElements)
-    
-    all_points.collect().foreach(i => println(i._1 + "(" + i._2 + ", " + i._3 + "): " + i._4 + " greater elements."))
+        .sortBy(obj => (obj._1, obj._2._5, obj._2._4), ascending = false).cache()
 
+    val broadcast_last_bucket = spark.sparkContext.broadcast(
+      all_points.mapPartitionsWithIndex((i, iter) => {
+        val seq = iter.toSeq
+        var number_of_data_points = 0
+        var last_label = "x"
+
+        if (seq.nonEmpty) {
+          for (row <- seq) {
+            last_label = row._1
+          }
+
+          for (row <- seq) {
+            if (last_label == row._1 && row._2._1 == "D") {
+              number_of_data_points = number_of_data_points + 1
+            }
+          }
+        }
+
+        Iterator((last_label, (i, number_of_data_points)))
+      }).groupByKey().collect().toMap[String, Iterable[(Int, Int)]]
+    )
+
+    val count_in_each_partition = all_points.mapPartitionsWithIndex((index, iter) => {
+          var result_seq = Seq[(Int, (Int, String, Int, Int))]()
+          val seq = iter.toSeq
+          if (seq.nonEmpty) {
+            var number_of_data_points = 0
+            var previous_label = seq.iterator.next._1
+
+            if (broadcast_last_bucket.value.isDefinedAt(previous_label)) {
+              val broadcasted_from_other_servers = broadcast_last_bucket.value(previous_label)
+
+              for (server <- broadcasted_from_other_servers) {
+                if (server._1 < index) {
+                  number_of_data_points = number_of_data_points + server._2
+                }
+              }
+            }
+
+            for (row <- seq) {
+              if (previous_label != row._1) {
+                number_of_data_points = 0
+              }
+
+              if (row._2._1 == "D") {
+                number_of_data_points = number_of_data_points + 1
+              }
+              else {
+                result_seq = result_seq :+ (row._2._3, (number_of_data_points, row._1, row._2._4, row._2._5)) // ID, (Count, Label, x, y)
+              }
+
+              previous_label = row._1
+            }
+          }
+
+          Iterator(result_seq)
+        })
+
+    val all_points_collected = count_in_each_partition
+      .flatMap(i => i)
+      .groupByKey()
+      .map(sumElements)
+      .collect()
+
+    all_points_collected.foreach(i => println(i._1 + "(" + i._2 + ", " + i._3 + "): " + i._4 + " greater elements."))
 
     spark.stop()
   }

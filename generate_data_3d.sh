@@ -1,11 +1,11 @@
 #!/bin/bash
 
-range_min_x=-1000
-range_max_x=1000
-range_min_y=-1000
-range_max_y=1000
-range_min_z=-1000
-range_max_z=1000
+range_min_x=0
+range_max_x=5
+range_min_y=0
+range_max_y=5
+range_min_z=0
+range_max_z=5
 
 records=$1
 file_name=$2

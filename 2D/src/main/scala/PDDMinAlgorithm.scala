@@ -80,11 +80,8 @@ object PDDMinAlgorithm extends Serializable {
     val sorted_by_x = in_file.orderBy("x", "y").rdd.zipWithIndex()
       .map(i => (toBinary(i._2, binary_length), i._1.getAs[Int](0), i._1.getAs[Int](1), i._1.getAs[Int](2))).cache
 
-    val sorted_by_y = sorted_by_x.sortBy(_._4).zipWithIndex()
-      .map(i => (i._1._1 + toBinary(i._2, binary_length), i._1._2, i._1._3, i._1._4)).cache
-
-    val query_points = sorted_by_y.map(row => ("Q", row._1, row._2, row._3, row._4))
-    val data_points = sorted_by_y.map(row => ("D", row._1, row._2, row._3, row._4))
+    val query_points = sorted_by_x.map(row => ("Q", row._1, row._2, row._3, row._4))
+    val data_points = sorted_by_x.map(row => ("D", row._1, row._2, row._3, row._4))
 
     val keys_query_points = query_points.flatMap(row => generateRows(row, '0'))
     val keys_data_points = data_points.flatMap(row => generateRows(row, '1'))
@@ -94,7 +91,7 @@ object PDDMinAlgorithm extends Serializable {
       .map(sortElements)
       .flatMap(i => countHigherElements(i))
       .groupByKey().map(sumElements)
-
+    
     all_points.collect().foreach(i => println(i._1 + "(" + i._2 + ", " + i._3 + "): " + i._4 + " greater elements."))
 
 

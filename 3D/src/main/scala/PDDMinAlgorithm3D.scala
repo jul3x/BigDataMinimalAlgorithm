@@ -37,24 +37,6 @@ object PDDMinAlgorithm3D extends Serializable {
     return_val
   }
 
-  def countHigherElements(i: (String, Iterable[(String, String, Int, Int, Int, Int)])): Seq[(Int, (Int, String, Int, Int, Int))] = {
-    val sorted_list = i._2.toList.map(row => (0, row._1, row._2, row._3, row._4, row._5, row._6))
-    var return_list = Seq[(Int, (Int, String, Int, Int, Int))]()
-
-    var number_of_data_points = 0
-
-    for (row <- sorted_list) {
-      if (row._2 == "D") {
-        number_of_data_points = number_of_data_points + 1
-      }
-      else {
-        return_list = return_list :+ (row._4, (number_of_data_points, row._3, row._5, row._6, row._7)) // ID, (Count, Label, x, y, z)
-      }
-    }
-
-    return_list
-  }
-
   def sumElements(i: (Int, Iterable[(Int, String, Int, Int, Int)])): (Int, Int, Int, Int, Int) = {
     val first_element = i._2.iterator.next()
     var sum = 0
@@ -67,7 +49,7 @@ object PDDMinAlgorithm3D extends Serializable {
   }
 
   def main(args: Array[String]) {
-    val spark = SparkSession.builder.appName("Simple Application").getOrCreate()
+    val spark = SparkSession.builder.appName("3D Point Counting").getOrCreate()
 
     val in_file = spark.read.format("csv")
       .option("sep", ",")
@@ -158,7 +140,6 @@ object PDDMinAlgorithm3D extends Serializable {
       .map(sumElements)
       .collect()
 
-//    all_points.collect().foreach(println)
     all_points_collected.foreach(i => println(i._1 + "(" + i._2 + ", " + i._3 + ", " + i._4 + "): " + i._5 + " greater elements."))
 
     spark.stop()
